@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Agendamento de Laboratório</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f2f2f2;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input[type="text"], input[type="date"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .aulas-container, .periodos-container, .laboratorios-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .aula-btn, .periodo-btn, .lab-btn {
+      padding: 10px 15px;
+      border: 1px solid #999;
+      border-radius: 5px;
+      background-color: #e0e0e0;
+      cursor: pointer;
+      user-select: none;
+    }
+    .aula-btn.selected,
+    .periodo-btn.selected,
+    .lab-btn.selected {
+      background-color: #2e86de;
+      color: white;
+      border-color: #1b4f72;
+    }
+    button[type="submit"] {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: #2e86de;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button[type="submit"]:hover {
+      background: #1b4f72;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+    th {
+      background: #ddd;
+    }
+    tr.selected {
+      background-color: #ffeeba !important;
+    }
+    #mensagem {
+      display: none;
+      background-color: #ffc107;
+      color: #333;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Agendamento de Laboratório</h1>
+
+  <div id="mensagem"></div>
+
+  <form id="agendamentoForm">
+    <label for="nome">Nome do Responsável:</label>
+    <input type="text" id="nome" required>
+
+    <label for="data">Data do Agendamento:</label>
+    <input type="date" id="data" required>
+
+    <label>Período (clique para selecionar):</label>
+    <div class="periodos-container" id="periodosContainer">
+      <div class="periodo-btn" data-periodo="Manhã">Manhã</div>
+      <div class="periodo-btn" data-periodo="Tarde">Tarde</div>
+      <div class="periodo-btn" data-periodo="Noite">Noite</div>
+    </div>
+
+    <label>Aulas (clique para selecionar):</label>
+    <div class="aulas-container" id="aulasContainer">
+      <div class="aula-btn" data-aula="1ª">1ª</div>
+      <div class="aula-btn" data-aula="2ª">2ª</div>
+      <div class="aula-btn" data-aula="3ª">3ª</div>
+      <div class="aula-btn" data-aula="4ª">4ª</div>
+      <div class="aula-btn" data-aula="5ª">5ª</div>
+      <div class="aula-btn" data-aula="6ª">6ª</div>
+    </div>
+
+    <label>Laboratório (clique para selecionar):</label>
+    <div class="laboratorios-container" id="laboratoriosContainer">
+      <div class="lab-btn" data-lab="LAB 1 Química">LAB 1 Química</div>
+      <div class="lab-btn" data-lab="LAB 2 Química">LAB 2 Química</div>
+      <div class="lab-btn" data-lab="LAB 3 Microbiologia">LAB 3 Microbiologia</div>
+    </div>
+
+    <button type="submit">Agendar</button>
+  </form>
+
+  <h2>Agendamentos Registrados</h2>
+  <table id="tabelaAgendamentos">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Data</th>
+        <th>Período</th>
+        <th>Aula</th>
+        <th>Laboratório</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    // Seleção múltipla de aulas
+    document.querySelectorAll('.aula-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('selected');
+      });
+    });
+
+    // Seleção única de período
+    document.querySelectorAll('.periodo-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.periodo-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      });
+    });
+
+    // Seleção única de laboratório
+    document.querySelectorAll('.lab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.lab-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      });
+    });
+
+    function formatarDataBR(dataISO) {
+      const [ano, mes, dia] = dataISO.split("-");
+      return `${dia}/${mes}/${ano}`;
+    }
+
+    function mostrarMensagem(msg) {
+      const mensagem = document.getElementById("mensagem");
+      mensagem.innerText = msg;
+      mensagem.style.display = "block";
+      setTimeout(() => mensagem.style.display = "none", 4000);
+    }
+
+    document.getElementById('agendamentoForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const nome = document.getElementById('nome').value;
+      const data = document.getElementById('data').value;
+      const dataFormatada = formatarDataBR(data);
+
+      const periodoEl = document.querySelector('.periodo-btn.selected');
+      const labEl = document.querySelector('.lab-btn.selected');
+
+      if (!periodoEl || !labEl) {
+        mostrarMensagem('Selecione o período e o laboratório.');
+        return;
+      }
+
+      const periodo = periodoEl.dataset.periodo;
+      const laboratorio = labEl.dataset.lab;
+
+      const aulasSelecionadas = Array.from(document.querySelectorAll('.aula-btn.selected'))
+        .map(el => el.dataset.aula);
+
+      if (aulasSelecionadas.length === 0) {
+        mostrarMensagem('Selecione pelo menos uma aula.');
+        return;
+      }
+
+      const tabela = document.querySelector('#tabelaAgendamentos tbody');
+      const linhas = Array.from(tabela.rows);
+
+      // Verificar se alguma aula já está agendada
+      let aulasConflito = [];
+
+      for (const aula of aulasSelecionadas) {
+        const existe = linhas.some(linha =>
+          linha.cells[1].innerText === dataFormatada &&
+          linha.cells[2].innerText === periodo &&
+          linha.cells[4].innerText === laboratorio &&
+          linha.cells[3].innerText.includes(aula)
+        );
+        if (existe) {
+          aulasConflito.push(aula);
+        }
+      }
+
+      if (aulasConflito.length > 0) {
+        if (aulasConflito.length === aulasSelecionadas.length) {
+          mostrarMensagem("Esta data já está agendada!");
+        } else {
+          mostrarMensagem(`A aula(s) ${aulasConflito.join(', ')} já está(ão) agendada(s)!`);
+        }
+        return; // ❗ Impede o agendamento se houver qualquer conflito
+      }
+
+      // Nenhum conflito: criar uma única linha com todas as aulas
+      const novaLinha = tabela.insertRow();
+      novaLinha.innerHTML = `
+        <td>${nome}</td>
+        <td>${dataFormatada}</td>
+        <td>${periodo}</td>
+        <td>${aulasSelecionadas.sort().join(', ')}</td>
+        <td>${laboratorio}</td>
+      `;
+      novaLinha.addEventListener('click', () => {
+        document.querySelectorAll('tr').forEach(row => row.classList.remove('selected'));
+        novaLinha.classList.add('selected');
+      });
+
+      // Resetar formulário e seleção
+      document.getElementById('agendamentoForm').reset();
+      document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+    });
+
+    // Exclusão com Ctrl + Delete
+    document.addEventListener('keydown', function (e) {
+      if (e.ctrlKey && e.key === 'Delete') {
+        const selecionada = document.querySelector('tbody tr.selected');
+        if (selecionada) selecionada.remove();
+      }
+    });
+  </script>
+</body>
+</html>
